@@ -6,7 +6,7 @@
   </el-row>
   <el-row>
     <el-col :span="12" :offset="6" class="input-row">
-      <el-input v-model.trim="input" placeholder="请输入内容" size='large' @focus="changeLogo" @blur="changeLogo">
+      <el-input v-model.trim="input" placeholder="请输入内容" size='large' @keyup.enter.native='submit' @focus="changeLogo" @blur="changeLogo">
         <el-button slot="append" icon="search" @click="submit"></el-button>
       </el-input>
     </el-col>
