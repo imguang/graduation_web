@@ -48,29 +48,29 @@
     <div class="sub-title">
       <h2 class="title-text">相关内容</h2>
     </div>
-    <el-collapse accordion>
-        <el-collapse-item>
+    <el-collapse accordion v-model="expands">
+        <el-collapse-item name="1">
         <template slot="title">
           治疗方案
         </template>
         <div v-html="entity.treatmentDetail">
         </div>
         </el-collapse-item>
-        <el-collapse-item>
+        <el-collapse-item name="2">
           <template slot="title">
            病因
           </template>
           <div v-html="entity.etiology">
           </div>
         </el-collapse-item>
-        <el-collapse-item>
+        <el-collapse-item name="3">
           <template slot="title">
            预防
           </template>
           <div v-html="entity.prevent">
           </div>
         </el-collapse-item>
-        <el-collapse-item>
+        <el-collapse-item name="4">
           <template slot="title">
            护理
           </template>
@@ -87,7 +87,7 @@ export default {
   props: ['entity'],
   data() {
     return {
-
+      expands:['1']
     }
   }
 }

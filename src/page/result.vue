@@ -8,68 +8,69 @@
     <el-button type='primary' @click="searchJump">搜索</el-button>
   </div>
   <el-row class="container" v-if="entity" v-loading="isLoading" element-loading-text="拼命加载中">
-    <el-col :sm="17" :xs="24">
+    <el-col :sm="16" :xs="24">
       <section class="content">
         <interest v-if="entity.searchRelations.length" :searchRelations="entity.searchRelations"></interest>
         <p>为您找到实体：</p>
-        <disease v-if="entity" :entity="entity"></disease>
+        <disease v-if="isDisease" :entity="entity"></disease>
+        <symptom v-if="isSymptom" :entity="entity"></symptom>
+        <medicine v-if="isMedicine" :entity="entity"></medicine>
         <!-- <p>
           对应的论文:
         </p> -->
       </section>
     </el-col>
-    <el-col :sm="7" :xs="24">
+    <el-col :sm="8" :xs="24">
       <div class="relative">
-        <h3>
-          相关疾病:
-        </h3>
         <div class="relation-room">
-          <el-tag type="primary">标签</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
+          <h3>
+            相关疾病:
+          </h3>
+          <p v-if="!entity.diseaseRelations.length">
+            没有相关疾病
+          </p>
+          <el-card :body-style="{ padding: '0px' }" v-for="elem in entity.diseaseRelations" :key='elem.graphId'>
+            <router-link :to="elem.name">
+              <img :src="elem.imgUrl" class="image" width="118" height="118">
+              <div style="padding: 7px;text-align: center">
+                <span>{{elem.name}}</span>
+              </div>
+            </router-link>
+          </el-card>
         </div>
-        <div class="relation-room">
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
+
+        <div class="relation-room" v-if="isDisease">
+          <h3>
+            相关症状：
+          </h3>
+          <p v-if="!entity.symptomRelations.length">
+            没有相关症状
+          </p>
+          <el-card :body-style="{ padding: '0px'}" v-for="elem in entity.symptomRelations" :key='elem.graphId'>
+            <router-link :to="elem.name">
+              <img :src="elem.imgUrl" class="image" width="118" height="118">
+              <div style="padding: 7px;text-align: center">
+                <span>{{elem.name}}</span>
+              </div>
+            </router-link>
+          </el-card>
         </div>
-        <h3>
-          相关症状：
-        </h3>
-        <div class="relation-room">
-          <el-tag type="primary">标签</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-        </div>
-        <div class="relation-room">
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-        </div>
-        <h3>
-          相关药品：
-        </h3>
-        <div class="relation-room">
-          <el-tag type="primary">标签</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-        </div>
-        <div class="relation-room">
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
-          <el-tag type="primary">标签三</el-tag>
+        <div class="relation-room" v-if="isDisease">
+          <h3>
+            相关药品：
+          </h3>
+          <p v-if="!entity.medicineRelations.length">
+            没有相关药品
+          </p>
+          <el-card :body-style="{ padding: '0px' }" v-for="elem in entity.medicineRelations" :key='elem.graphId'>
+            <router-link :to="elem.name">
+              <div v-html="elem.imgUrl" class="relation-medicine-img">
+              </div>
+              <div style="padding: 7px;text-align: center">
+                <span>{{elem.name}}</span>
+              </div>
+            </router-link>
+          </el-card>
         </div>
       </div>
     </el-col>
@@ -80,10 +81,15 @@
 import request from "../apis/libs/request.js"
 import interest from "../components/interest.vue"
 import disease from "../components/disease.vue"
+import symptom from "../components/symptom.vue"
+import medicine from "../components/medicine.vue"
 
 export default {
   components: {
-    interest,disease
+    interest,
+    disease,
+    symptom,
+    medicine
   },
   data() {
     return {
@@ -92,8 +98,34 @@ export default {
       isLoading: false
     }
   },
+  computed:{
+    isDisease(){
+      if(!this.entity){
+        return false;
+      }
+      if(this.entity.flag == 'disease')
+        return true;
+      return false;
+    },
+    isSymptom(){
+      if(!this.entity){
+        return false;
+      }
+      if(this.entity.flag == 'symptom')
+        return true;
+      return false;
+    },
+    isMedicine(){
+      if(!this.entity){
+        return false;
+      }
+      if(this.entity.flag == 'medicine')
+        return true;
+      return false;
+    }
+  },
   methods: {
-    searchJump(){
+    searchJump() {
       this.$router.push(this.input);
     },
     searchItem() {
@@ -104,16 +136,17 @@ export default {
         vm.entity = data;
         vm.isLoading = false;
         console.log(data);
-        if(!data){
+        if (!data) {
           this.$notify({
-          title: '警告',
-          message: '没有找到任何东西',
-          type: 'warning'});
+            title: '警告',
+            message: '没有找到任何东西',
+            type: 'warning'
+          });
         }
       });
     }
   },
-  watch:{
+  watch: {
     '$route': 'searchItem'
   },
   created() {
@@ -123,7 +156,11 @@ export default {
 }
 </script>
 <style>
-ul,li,h2,dl,dt {
+ul,
+li,
+h2,
+dl,
+dt {
   margin: 0;
   padding: 0;
 }
@@ -147,6 +184,10 @@ ul,li,h2,dl,dt {
   height: 40px;
   vertical-align: middle;
 }
+.imgContainer .fl{
+  width: 158px;
+  height: 118px;
+}
 
 .content {
   padding: 0px 30px;
@@ -162,7 +203,17 @@ ul,li,h2,dl,dt {
   top: 61px;
   padding: 0px 0px 30px 50px;
 }
-
+/*相关区域块*/
+.relative .el-card{
+  width: 118px;
+  display: inline-block;
+  vertical-align: top;
+  margin: 5px;
+}
+.relation-medicine-img .fl{
+  width: 118px;
+  height: 118px;
+}
 /*相关区域*/
 
 .relative {
@@ -170,7 +221,8 @@ ul,li,h2,dl,dt {
   padding-left: 30px;
 }
 
-.relation-room {
-  padding: 5px;
+.relation-room a{
+  text-decoration: none;
+  color: #34495e;
 }
 </style>
