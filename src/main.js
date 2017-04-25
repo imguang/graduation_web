@@ -11,6 +11,13 @@ Vue.use(VueResource);
 Vue.use(ElementUI)
 Vue.config.productionTip = false
 
+import IEcharts from 'vue-echarts-v3/src/lite.vue';
+import 'echarts/lib/chart/bar';
+import 'echarts/lib/chart/graph'
+import 'echarts/lib/component/toolbox';
+import 'echarts/lib/component/tooltip';
+import 'echarts/lib/component/title';
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

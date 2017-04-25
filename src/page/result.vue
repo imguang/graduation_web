@@ -22,6 +22,9 @@
     </el-col>
     <el-col :sm="8" :xs="24">
       <div class="relative">
+        <div class="echarts">
+          <IEcharts :option="bar" :loading="loading" @ready="onReady" @click="onClick"></IEcharts>
+        </div>
         <div class="relation-room">
           <h3>
             相关疾病:
@@ -83,43 +86,87 @@ import interest from "../components/interest.vue"
 import disease from "../components/disease.vue"
 import symptom from "../components/symptom.vue"
 import medicine from "../components/medicine.vue"
+import IEcharts from 'vue-echarts-v3';
 
 export default {
   components: {
     interest,
     disease,
     symptom,
-    medicine
+    medicine,
+    IEcharts
   },
   data() {
     return {
       input: '',
       entity: '',
-      isLoading: false
+      isLoading: false,
+      loading: false,
+      bar: {
+        title: {
+          text: '相关实体',
+        },
+        tooltip: {},
+        series: [{
+          type: 'graph',
+          layout: 'force',
+          draggable: 'true',
+          force: {
+            repulsion: 180,
+            edgeLength: [60,120]
+          },
+          categories: [{
+            name: '疾病',
+            symbol: 'circle',
+            symbolSize: 70
+          }, {
+            name: '症状',
+            symbol: 'circle',
+            symbolSize: 60
+          }, {
+            name: '药品',
+            symbol: 'circle',
+            symbolSize: 60
+          }],
+          data: [],
+          links: [],
+          label: {
+            normal: {
+              show: true,
+              position: 'top'
+            }
+          }
+        }],
+        legend: [{
+          bottom: 10,
+          right:10,
+          data: ['疾病','症状','药品']
+        }],
+      }
     }
   },
-  computed:{
-    isDisease(){
-      if(!this.entity){
+  computed: {
+    isDisease() {
+      if (!this.entity) {
         return false;
       }
-      if(this.entity.flag == 'disease')
+      if (this.entity.flag == 'disease')
         return true;
       return false;
     },
-    isSymptom(){
-      if(!this.entity){
+    isSymptom() {
+      if (!this.entity) {
         return false;
       }
-      if(this.entity.flag == 'symptom')
+      if (this.entity.flag == 'symptom')
         return true;
       return false;
     },
-    isMedicine(){
-      if(!this.entity){
+    isMedicine() {
+      if (!this.entity) {
         return false;
       }
-      if(this.entity.flag == 'medicine')
+      if (this.entity.flag == 'medicine')
         return true;
       return false;
     }
@@ -144,10 +191,79 @@ export default {
           });
         }
       });
+    },
+    onReady(instance) {
+      console.log(instance);
+    },
+    onClick(event, instance, echarts) {
+      console.log(arguments);
     }
   },
   watch: {
-    '$route': 'searchItem'
+    '$route': 'searchItem',
+    entity: function(val) {
+      let name = val.diseaseName ? val.diseaseName : val.name;
+      let series = this.bar.series[0];
+      let data = [];
+      let links = [];
+
+      data.push({
+        'name': name,
+        symbolSize: 50,
+        itemStyle:{
+          normal:{
+            color:'#ca8622'
+          }
+        }
+      })
+      for(var i=0;i < val.diseaseRelations.length;i++){
+        if(i > 10){
+          break;
+        }
+        var item = val.diseaseRelations[i];
+        data.push({
+          name: item.name,
+          symbolSize: 40,
+          category: 0
+        });
+        links.push({
+          'source': name,
+          target: item.name,
+          value:80
+        });
+      }
+
+      if (val.flag == 'disease') {
+        val.symptomRelations.forEach(function(val, index) {
+          data.push({
+            name: val.name,
+            symbolSize: 30,
+            category: 1
+          });
+          links.push({
+            'source': name,
+            target: val.name,
+            value:100
+          });
+        });
+        val.medicineRelations.forEach(function(val, index) {
+          data.push({
+            name: val.name,
+            symbolSize: 30,
+            category: 2
+          });
+          links.push({
+            'source': name,
+            target: val.name,
+            value:120
+          });
+        });
+      }
+      series.data = data;
+      series.links = links;
+      console.log(data);
+      console.log(links);
+    }
   },
   created() {
     this.input = this.$route.params.query;
@@ -184,7 +300,8 @@ dt {
   height: 40px;
   vertical-align: middle;
 }
-.imgContainer .fl{
+
+.imgContainer .fl {
   width: 158px;
   height: 118px;
 }
@@ -203,17 +320,25 @@ dt {
   top: 61px;
   padding: 0px 0px 30px 50px;
 }
+
 /*相关区域块*/
-.relative .el-card{
+
+.echarts {
+  height: 397px;
+}
+
+.relative .el-card {
   width: 118px;
   display: inline-block;
   vertical-align: top;
   margin: 5px;
 }
-.relation-medicine-img .fl{
+
+.relation-medicine-img .fl {
   width: 118px;
   height: 118px;
 }
+
 /*相关区域*/
 
 .relative {
@@ -221,7 +346,7 @@ dt {
   padding-left: 30px;
 }
 
-.relation-room a{
+.relation-room a {
   text-decoration: none;
   color: #34495e;
 }
