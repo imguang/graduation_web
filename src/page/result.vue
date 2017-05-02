@@ -15,9 +15,11 @@
         <disease v-if="isDisease" :entity="entity"></disease>
         <symptom v-if="isSymptom" :entity="entity"></symptom>
         <medicine v-if="isMedicine" :entity="entity"></medicine>
-        <!-- <p>
-          对应的论文:
-        </p> -->
+        <p>对应的论文:</p>
+        <p v-if="!entity.papers.length">
+          没有相关论文
+        </p>
+        <paper v-if="entity.papers.length" :papers="entity.papers" :words="entity.words"></paper>
       </section>
     </el-col>
     <el-col :sm="8" :xs="24">
@@ -86,6 +88,7 @@ import interest from "../components/interest.vue"
 import disease from "../components/disease.vue"
 import symptom from "../components/symptom.vue"
 import medicine from "../components/medicine.vue"
+import paper from "../components/paper.vue"
 import IEcharts from 'vue-echarts-v3';
 
 export default {
@@ -94,7 +97,8 @@ export default {
     disease,
     symptom,
     medicine,
-    IEcharts
+    IEcharts,
+    paper
   },
   data() {
     return {
@@ -181,6 +185,14 @@ export default {
       vm.isLoading = true;
       request.get("search/item?words=" + vm.input, data => {
         vm.entity = data;
+        let papers = vm.entity.papers;
+        let words = vm.entity.words;
+        for(var i=0;i < papers.length;i++){
+          for(var j=0;j < words.length;j++){
+            papers[i].title = papers[i].title.replace(words[j],"<em class='insert'>"+ words[j] +"</em>");
+            papers[i].abstracts = papers[i].abstracts.replace(words[j],"<em class='insert'>"+ words[j] +"</em>");
+          }
+        }
         vm.isLoading = false;
         console.log(data);
         if (!data) {

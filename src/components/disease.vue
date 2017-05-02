@@ -87,7 +87,7 @@ export default {
   props: ['entity'],
   data() {
     return {
-      expands:['1']
+      expands:[]
     }
   }
 }
