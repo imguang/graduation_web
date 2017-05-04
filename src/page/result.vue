@@ -15,11 +15,28 @@
         <disease v-if="isDisease" :entity="entity"></disease>
         <symptom v-if="isSymptom" :entity="entity"></symptom>
         <medicine v-if="isMedicine" :entity="entity"></medicine>
-        <p>对应的论文:</p>
-        <p v-if="!entity.papers.length">
-          没有相关论文
-        </p>
-        <paper v-if="entity.papers.length" :papers="entity.papers" :words="entity.words"></paper>
+        <p>相关文献：</p>
+        <el-collapse accordion>
+            <el-collapse-item name="1">
+              <template slot="title">
+                中文文献：
+              </template>
+              <p v-if="!entity.papers.length">
+                没有相关论文
+              </p>
+              <paper v-if="entity.papers.length" :papers="entity.papers"></paper>
+            </el-collapse-item>
+            <el-collapse-item name="2">
+              <template slot="title">
+                英文文献：
+              </template>
+              <p v-if="!entity.papersEN.length">
+                没有相关论文
+              </p>
+              <paperEN v-if="entity.papersEN.length" :papers="entity.papersEN"></paperEN>
+            </el-collapse-item>
+          </el-collapse>
+
       </section>
     </el-col>
     <el-col :sm="8" :xs="24">
@@ -89,6 +106,7 @@ import disease from "../components/disease.vue"
 import symptom from "../components/symptom.vue"
 import medicine from "../components/medicine.vue"
 import paper from "../components/paper.vue"
+import paperEN from "../components/paperEN.vue"
 import IEcharts from 'vue-echarts-v3';
 
 export default {
@@ -98,7 +116,8 @@ export default {
     symptom,
     medicine,
     IEcharts,
-    paper
+    paper,
+    paperEN
   },
   data() {
     return {
@@ -185,6 +204,68 @@ export default {
       vm.isLoading = true;
       request.get("search/item?words=" + vm.input, data => {
         vm.entity = data;
+
+        let val = data;
+        let name = val.diseaseName ? val.diseaseName : val.name;
+        let series = vm.bar.series[0];
+        let sedata = [];
+        let links = [];
+        sedata.push({
+          'name': name,
+          symbolSize: 50,
+          itemStyle:{
+            normal:{
+              color:'#ca8622'
+            }
+          }
+        })
+        for(var i=0;i < val.diseaseRelations.length;i++){
+          if(i > 10){
+            break;
+          }
+          var item = val.diseaseRelations[i];
+          sedata.push({
+            name: item.name,
+            symbolSize: 40,
+            category: 0
+          });
+          links.push({
+            'source': name,
+            target: item.name,
+            value:80
+          });
+        }
+
+        if (val.flag == 'disease') {
+          val.symptomRelations.forEach(function(val, index) {
+            sedata.push({
+              name: val.name,
+              symbolSize: 30,
+              category: 1
+            });
+            links.push({
+              'source': name,
+              target: val.name,
+              value:100
+            });
+          });
+          val.medicineRelations.forEach(function(val, index) {
+            sedata.push({
+              name: val.name,
+              symbolSize: 30,
+              category: 2
+            });
+            links.push({
+              'source': name,
+              target: val.name,
+              value:120
+            });
+          });
+        }
+        series.data = sedata;
+        series.links = links;
+
+
         let papers = vm.entity.papers;
         let words = vm.entity.words;
         for(var i=0;i < papers.length;i++){
@@ -212,70 +293,7 @@ export default {
     }
   },
   watch: {
-    '$route': 'searchItem',
-    entity: function(val) {
-      let name = val.diseaseName ? val.diseaseName : val.name;
-      let series = this.bar.series[0];
-      let data = [];
-      let links = [];
-
-      data.push({
-        'name': name,
-        symbolSize: 50,
-        itemStyle:{
-          normal:{
-            color:'#ca8622'
-          }
-        }
-      })
-      for(var i=0;i < val.diseaseRelations.length;i++){
-        if(i > 10){
-          break;
-        }
-        var item = val.diseaseRelations[i];
-        data.push({
-          name: item.name,
-          symbolSize: 40,
-          category: 0
-        });
-        links.push({
-          'source': name,
-          target: item.name,
-          value:80
-        });
-      }
-
-      if (val.flag == 'disease') {
-        val.symptomRelations.forEach(function(val, index) {
-          data.push({
-            name: val.name,
-            symbolSize: 30,
-            category: 1
-          });
-          links.push({
-            'source': name,
-            target: val.name,
-            value:100
-          });
-        });
-        val.medicineRelations.forEach(function(val, index) {
-          data.push({
-            name: val.name,
-            symbolSize: 30,
-            category: 2
-          });
-          links.push({
-            'source': name,
-            target: val.name,
-            value:120
-          });
-        });
-      }
-      series.data = data;
-      series.links = links;
-      console.log(data);
-      console.log(links);
-    }
+    '$route': 'searchItem'
   },
   created() {
     this.input = this.$route.params.query;

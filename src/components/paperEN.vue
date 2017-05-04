@@ -1,18 +1,18 @@
 <template>
-<div id="paper">
+<div id="paperEN">
   <div v-for="(elem,index) in papers" :key='elem.graphId' class="paper-item">
-    <div class="paper-title"><span class="index">{{index + 1}}.</span><span v-html="elem.title"></span><span class="cited">(被引用{{elem.citedNum}}次)</span></div>
+    <div class="paper-title"><span class="index">{{index + 1}}.</span><span>{{elem.title}}</span><span class="cited">(被引用{{elem.citedNum}}次)</span></div>
     <div class="paper-subtitle">{{elem.publisher}}-{{elem.publishYear}}年 {{elem.author}}</div>
-    <div class="paper-abstract"><span v-html="elem.abstracts"></span></div>
+    <div class="paper-abstract">{{elem.abstractsEN}}</div>
     <div class="paper-tags">
-      <el-tag v-for="tag in elem.keyWords.split(';')" type="primary" class="tag-item">{{tag}}</el-tag>
+      <el-tag v-for="tag in elem.keyWordsEN.split(';')" type="primary" class="tag-item">{{tag}}</el-tag>
     </div>
   </div>
 </div>
 </template>
 <script>
 export default {
-  name: "paper",
+  name: "paperEN",
   props: ['papers'],
   data: function data() {
     return {
